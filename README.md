@@ -9,6 +9,7 @@ research behind it.
 
 | Folder | Proposal | Status |
 |---|---|---|
+| `views-trim/` | `views::trim` / `views::trim_while` (P2760 Tier 2) | Draft DxxxxR0; floated on std-proposals 2026-10-13 (predicate form renamed from trim_if after list feedback) |
 | `views-drop-last-while/` | `views::drop_last_while` / `views::take_last_while` (P2760 Tier 1) | Draft DxxxxR0; floated on std-proposals 2026-10-14; SG9 confirmed unclaimed |
 
 ## Licence
