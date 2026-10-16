@@ -1,0 +1,38 @@
+Verification transcript — views::trim / views::trim_while (rename build)
+Date: 2026-10-16
+Location: github-staging/cpp-proposals/views-trim/impl (staged copy)
+
+What this run is: the reference implementation from the views-trim
+submission pack (verified 2026-10-13, transcript in the pack), copied
+for the public repository with ONE change — the predicate adaptor was
+renamed trim_if -> trim_while throughout (header, tests, docs),
+following Arthur O'Dwyer's feedback on the std-proposals float.
+Semantics unchanged. The rename was checked by diffing the staged
+header and tests against the pack originals: every changed line is a
+name change, plus comment notes recording the rename.
+
+Compilers:
+  g++      13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1)
+  clang++  18.1.3 (binary clang++-18; libstdc++ 13)
+
+Commands and results (all runs in this directory):
+
+  g++ -std=c++20 -Wall -Wextra -Werror test_views_trim.cpp && ./a.out
+      PASS (exit 0)
+  g++ -std=c++23 -Wall -Wextra -Werror test_views_trim.cpp && ./a.out
+      PASS (exit 0)
+  clang++-18 -std=c++20 -Wall -Wextra -Werror test_views_trim.cpp && ./a.out
+      PASS (exit 0)
+  clang++-18 -std=c++23 -Wall -Wextra -Werror test_views_trim.cpp && ./a.out
+      PASS (exit 0)
+  g++ -std=c++20 -Wall -Wextra -Werror -fsanitize=address,undefined
+      -fno-sanitize-recover=all test_views_trim.cpp && ./a.out
+      PASS (exit 0, no sanitizer report)
+  clang++-18 -std=c++20 -Wall -Wextra -Werror -fsanitize=address,undefined
+      -fno-sanitize-recover=all test_views_trim.cpp && ./a.out
+      PASS (exit 0, no sanitizer report)
+
+All six configurations compile warning-free (under -Werror) and the
+test binary prints PASS. The suite includes the two non-propagating
+cache regression tests (copy and move directions) that exercise the
+use-after-free cases under AddressSanitizer.
