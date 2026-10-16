@@ -63,6 +63,7 @@
 #include <concepts>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <ranges>
 #include <type_traits>
@@ -135,6 +136,12 @@ struct movable_box {
     constexpr movable_box(const movable_box&) = default;
     constexpr movable_box(movable_box&&) = default;
     constexpr movable_box& operator=(const movable_box& other) {
+        // Self-assignment has to be a no-op: the reconstruct path
+        // below would otherwise destroy the stored value and then
+        // read from the destroyed object. (The standard's
+        // movable-box guards against this the same way.)
+        if (this == std::addressof(other))
+            return *this;
         if (!other.box_)
             box_.reset();
         else if constexpr (std::assignable_from<T&, const T&>) {
@@ -147,6 +154,8 @@ struct movable_box {
         return *this;
     }
     constexpr movable_box& operator=(movable_box&& other) {
+        if (this == std::addressof(other))
+            return *this;
         if (!other.box_)
             box_.reset();
         else if constexpr (std::assignable_from<T&, T>) {
@@ -172,9 +181,11 @@ struct movable_box {
 // applying pred to the last element first and stopping at the first
 // element for which pred is false; the scan never passes begin(rng)
 // and its cost is O(trailing run length + 1) predicate
-// applications.
+// applications. The predicate is taken by const reference and only
+// ever called as const, matching the views' constraint
+// (indirect_unary_predicate<const Pred, ...>).
 template <class Rng, class P>
-constexpr auto trailing_run_begin(Rng& rng, P& pred) {
+constexpr auto trailing_run_begin(Rng& rng, const P& pred) {
     auto first = std::ranges::begin(rng);
     auto last = std::ranges::end(rng);
     while (last != first) {

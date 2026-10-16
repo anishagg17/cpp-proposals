@@ -1,0 +1,97 @@
+Verification transcript — views::drop_last_while / views::take_last_while
+Reference implementation: impl/views_drop_last_while.hpp
+Tests: impl/test_views_drop_last_while.cpp
+Date: 15 Oct 2026. All commands run in this workspace (impl/).
+Note: on this VM the Clang binary is clang++-18; plain clang++ is
+not on PATH.
+
+$ g++ --version | head -1
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+[exit 0]
+
+$ clang++-18 --version | head -1
+Ubuntu clang version 18.1.3 (1ubuntu1)
+[exit 0]
+
+$ g++ -std=c++20 -O2 -Wall -Wextra -Werror test_views_drop_last_while.cpp -o /tmp/v1 && /tmp/v1
+PASS
+[exit 0]
+
+$ g++ -std=c++23 -O2 -Wall -Wextra -Werror test_views_drop_last_while.cpp -o /tmp/v2 && /tmp/v2
+PASS
+[exit 0]
+
+$ clang++-18 -std=c++20 -O2 -Wall -Wextra -Werror test_views_drop_last_while.cpp -o /tmp/v3 && /tmp/v3
+PASS
+[exit 0]
+
+$ clang++-18 -std=c++23 -O2 -Wall -Wextra -Werror test_views_drop_last_while.cpp -o /tmp/v4 && /tmp/v4
+PASS
+[exit 0]
+
+$ g++ -std=c++20 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined test_views_drop_last_while.cpp -o /tmp/v5 && /tmp/v5
+PASS
+[exit 0]
+
+$ clang++-18 -std=c++20 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined test_views_drop_last_while.cpp -o /tmp/v6 && /tmp/v6
+PASS
+[exit 0]
+
+Summary: PASS on g++ 13.3.0 and clang++ 18.1.3, at -std=c++20 and
+-std=c++23, all with -O2 -Wall -Wextra -Werror; ASan/UBSan clean
+under both compilers at -std=c++20 (the suite includes the
+non-propagating-cache regression tests over views::single and over
+an owning_view base, which are the tests the sanitizer runs exist
+for).
+
+Design iteration recorded honestly: the first run of the suite
+failed one assertion — in the author's own test, not the header.
+The transform-then-drop case expected the leading zero of
+{0,1,2,0}×10 to be dropped as well as the trailing one;
+drop_last_while by definition leaves leading elements untouched.
+The expectation was corrected to {0,10,20} and the suite then
+passed in all configurations above. No header change resulted.
+
+================================================================
+Addendum — 16 Oct 2026: movable_box self-assignment fix
+================================================================
+
+An external review of the published copy found a real bug, and a
+standalone reproducer confirmed it against the 15 Oct header: a
+view whose predicate is a capturing lambda (a non-assignable
+closure type) corrupted its predicate on self-assignment. The
+movable_box assignment operators stored such a predicate by
+destroying it and reconstructing from the destroyed object
+(use-after-free; AddressSanitizer aborts inside the string copy in
+movable_box::operator= on `v = v` with a lambda capturing a
+heap-allocated std::string).
+
+Changes made on 16 Oct 2026:
+1. impl/views_drop_last_while.hpp: both movable_box assignment
+   operators (copy and move) now start with the self-assignment
+   guard `if (this == std::addressof(other)) return *this;`,
+   matching the standard's movable-box. <memory> included for
+   std::addressof.
+2. Same header: the shared boundary scan (trailing_run_begin) now
+   takes the predicate as `const P&` and only ever calls it as
+   const, matching the views' constraint
+   indirect_unary_predicate<const Pred, ...>. Evaluation order and
+   count are unchanged.
+3. impl/test_views_drop_last_while.cpp: new regression test —
+   views over a lambda capturing a 64-char std::string (heap
+   allocated) are self-copy-assigned and self-move-assigned, then
+   iterated and checked, for both drop_last_while and
+   take_last_while.
+4. Makefile and build.sh: the Clang binary is no longer hard-wired
+   to clang++-18; both detect clang++ first and fall back to
+   clang++-18.
+
+Re-verification after the fix (16 Oct 2026): the full suite passes
+on g++ 13.3.0 and clang++ 18.1.3 at -std=c++20 and -std=c++23
+(-O2 -Wall -Wextra -Werror), and ASan+UBSan
+(-fsanitize=address,undefined -fno-sanitize-recover=all) runs are
+clean under both compilers at both standards. The standalone
+self-assignment reproducer prints REPRO OK under ASan with both
+compilers; against the pre-fix header it aborts in
+movable_box::operator= as described above. `make test` and
+`./build.sh` both pass end to end.

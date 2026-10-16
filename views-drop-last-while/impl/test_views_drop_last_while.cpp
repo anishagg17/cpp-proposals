@@ -318,7 +318,7 @@ int main() {
     }
 
     // Non-propagating cache (regression test, same shape as the trim
-    // pack's): a cached iterator of a view over views::single points
+    // one): a cached iterator of a view over views::single points
     // INTO the view object. Copying the view must not copy the cache
     // — with a propagating cache the copy's begin() would dereference
     // an iterator into the destroyed original (use-after-free; this
@@ -378,6 +378,35 @@ int main() {
         assert((to_vec(d3) == std::vector{1, 2}));
         auto rev = v | spv::drop_last_while(lam) | sr::views::reverse;
         assert((to_vec(rev) == std::vector{2, 1}));
+    }
+
+    // Movable-box self-assignment (regression test): assigning a
+    // view to itself must leave the stored predicate intact. The
+    // predicate is a lambda capturing a heap-allocated string, so
+    // its closure type is not assignable and the box stores it by
+    // destroying and reconstructing on assignment; without a
+    // self-assignment guard that path reads from the object it just
+    // destroyed (use-after-free — this test also runs under
+    // AddressSanitizer). The predicate reads the captured string on
+    // every call, so a corrupted capture changes the result.
+    {
+        std::string big(64, 'x'); // forces a heap allocation (no SSO)
+        auto pred = [big](int x) { return x == 0 && big.size() == 64; };
+        std::vector<int> v{1, 2, 0, 0};
+        auto d = v | spv::drop_last_while(pred);
+        assert((to_vec(d) == std::vector{1, 2}));
+        auto& dref = d;
+        d = dref; // self copy-assignment
+        assert((to_vec(d) == std::vector{1, 2}));
+        d = std::move(dref); // self move-assignment
+        assert((to_vec(d) == std::vector{1, 2}));
+        auto t = v | spv::take_last_while(pred);
+        assert((to_vec(t) == std::vector{0, 0}));
+        auto& tref = t;
+        t = tref; // self copy-assignment
+        assert((to_vec(t) == std::vector{0, 0}));
+        t = std::move(tref); // self move-assignment
+        assert((to_vec(t) == std::vector{0, 0}));
     }
 
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 202202L

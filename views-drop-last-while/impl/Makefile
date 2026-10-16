@@ -1,7 +1,6 @@
 CXXFLAGS_COMMON = -Wall -Wextra -Werror
-# On this VM the Clang binary is clang++-18 (18.1.3); plain clang++
-# is not on PATH.
-CLANGXX = clang++-18
+# Use clang++ when it is on PATH; fall back to a versioned binary.
+CLANGXX := $(shell command -v clang++ 2>/dev/null || command -v clang++-18 2>/dev/null)
 
 test:
 	g++        -std=c++20 $(CXXFLAGS_COMMON) test_views_drop_last_while.cpp -o test_g++_c++20        && ./test_g++_c++20

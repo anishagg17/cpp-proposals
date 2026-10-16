@@ -1,12 +1,18 @@
 #!/bin/sh
 # Build and run the views::drop_last_while / views::take_last_while
 # tests under both compilers and both standard modes. Any failure
-# aborts with a non-zero exit status. On this VM the Clang binary is
-# clang++-18 (18.1.3); plain clang++ is not on PATH.
+# aborts with a non-zero exit status.
 set -e
 cd "$(dirname "$0")"
 
-for cc in g++ clang++-18; do
+# Prefer clang++; fall back to a versioned binary name.
+if command -v clang++ >/dev/null 2>&1; then
+    CLANG=clang++
+else
+    CLANG=clang++-18
+fi
+
+for cc in g++ "$CLANG"; do
     for std in c++20 c++23; do
         bin="test_${cc}_${std}"
         echo "== $cc -std=$std =="
