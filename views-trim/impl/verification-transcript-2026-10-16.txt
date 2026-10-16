@@ -1,6 +1,6 @@
 Verification transcript — views::trim / views::trim_while (rename build)
 Date: 2026-10-16
-Location: github-staging/cpp-proposals/views-trim/impl (staged copy)
+Location: views-trim/impl
 
 What this run is: the reference implementation from the views-trim
 working copy (verified 2026-10-13, transcript kept with it), copied
@@ -47,8 +47,7 @@ non-assignable predicate (a capturing lambda) by destroying it and
 reconstructing from the destroyed object, so self-assigning a view
 corrupted its predicate (use-after-free under AddressSanitizer).
 
-Changes made on 16 Oct 2026 (this staged copy and the working copy
-it came from):
+Changes made on 16 Oct 2026 (both copies of the implementation):
 1. impl/views_trim.hpp: both movable_box assignment operators
    (copy and move) now start with the self-assignment guard
    `if (this == std::addressof(other)) return *this;`, matching

@@ -1,0 +1,162 @@
+$ g++ --version | head -1
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+[exit 0]
+
+$ clang++ --version | head -1
+Ubuntu clang version 18.1.3 (1ubuntu1)
+[exit 0]
+
+$ g++ -std=c++20 -O2 -Wall -Wextra -Werror test_views_trim.cpp -o /tmp/t1 && /tmp/t1
+PASS
+[exit 0]
+
+$ g++ -std=c++23 -O2 -Wall -Wextra -Werror test_views_trim.cpp -o /tmp/t2 && /tmp/t2
+PASS
+[exit 0]
+
+$ clang++ -std=c++20 -O2 -Wall -Wextra -Werror test_views_trim.cpp -o /tmp/t3 && /tmp/t3
+PASS
+[exit 0]
+
+$ clang++ -std=c++23 -O2 -Wall -Wextra -Werror test_views_trim.cpp -o /tmp/t4 && /tmp/t4
+PASS
+[exit 0]
+
+NOTE (13 Oct 2026, re-verification by main agent after the building
+agent was lost to a VM restart mid-verification): the first verification
+attempt FAILED on g++ -Werror — compute_end used std::prev, whose
+category-tag dispatch reaches an input-iterator advance path (UB for
+distance -1) for views like transform_view with a prvalue-returning
+function, diagnosed by GCC -Werror=aggressive-loop-optimizations.
+Fixed by decrementing a copy of the iterator directly (--prev), valid
+under trim_view's bidirectional_range constraint. The transcript above
+is the post-fix run: PASS in all four configurations.
+
+=== REVIEW ADDENDUM (13 Oct 2026, external review applied) ===
+Two bugs found by an external reviewer, both confirmed and fixed:
+(1) The begin/end caches were plain std::optional members: copying a
+    trim_view copied the cached iterators. Over views::single (whose
+    iterator points into the view object) the copy then held an
+    iterator into the original — use-after-free once the original is
+    destroyed. REPRODUCED: the new regression test in
+    test_views_trim.cpp (copy a populated view over views::single,
+    delete the original, iterate the copy) reports
+    AddressSanitizer: heap-use-after-free against the pre-fix header,
+    and is clean after the fix. Fix: caches are now a
+    non_propagating_cache modelled on [range.nonprop.cache] (copies
+    and moves yield an empty cache); the unneeded `mutable` is gone.
+(2) The draft wording specified views::trim(E, V) with a lambda
+    capturing V by reference — dangling for `r | views::trim(' ')`.
+    Wording now stores a decayed copy of the value in an
+    exposition-only predicate (the implementation already did).
+Re-verified after the fix: PASS g++ -std=c++20, PASS g++ -std=c++23,
+PASS clang++ -std=c++20, PASS clang++ -std=c++23 (all -O2 -Wall
+-Wextra -Werror), and ASan/UBSan clean under both compilers.
+
+ADDENDUM 2 (13 Oct 2026, second external review round; all findings
+verified at source before fixing):
+
+1. Cache move operations did not empty the SOURCE. Fixed to match
+   the standard's non-propagating-cache: move construction and move
+   assignment now call other.reset() (assignment skips the reset on
+   self-assignment). New regression test (populated view over an
+   owning_view base; move; destroy the destination chain; iterate
+   the moved-from original): with the resets removed from a scratch
+   copy of the header, the test crashes under ASan/UBSan (SEGV on
+   the dangling iterator dereference + UBSan report in
+   stl_iterator.h); with the fix it is clean, below.
+2. Const begin()/end() removed from the header, the paper's
+   synopsis and wording (former paragraph (9) deleted; sections
+   V.4/V.5 rewritten). Precedent verified empirically: libstdc++'s
+   drop_while_view has no const begin(). The test suite's constexpr
+   helper now uses a mutable local view object (constant EVALUATION
+   is unaffected; a constexpr view OBJECT is no longer iterable —
+   the same is true of drop_while_view). A namespace-scope
+   static_assert now pins the absence of const begin/end.
+3. views::trim(value): eq_value_pred::operator() gained
+   requires requires { { x == value_ } -> convertible_to<bool>; }.
+   New namespace-scope negative test: trim over vector<no_eq> with
+   an int value is a substitution failure.
+4. Adaptor closures: in C++23 (when __cpp_lib_ranges >= 202207L)
+   the closure types derive from std::ranges::range_adaptor_closure
+   and closure|closure composition works (new test:
+   views::trim(' ') | views::reverse applied to " ab " yields "ba").
+   In C++20 the previous free operator| provides range|closure.
+5. Movable-box for the predicate (header + wording): a capturing
+   lambda is not assignable, so storing Pred directly left the view
+   not modelling std::ranges::view and unpipeable. The box wraps
+   std::optional BUT assigns manually — optional<T>'s own assignment
+   operators are deleted for non-assignable T (found by the test
+   build); the non-assignable path destroys and reconstructs via
+   emplace. New tests: view concept holds for a lambda-predicated
+   trim_view; copy/move assignment of such views; composition with
+   views::reverse.
+6. Paper: section III.1 rewritten (the reverse/drop_while/reverse
+   composition is fully lazy — verified — its real costs are loss
+   of contiguous_range, checked concept-by-concept, and wrapper
+   iterators); section II's unnumbered Tier-1 claim removed; the
+   wording's default constructor gained
+   requires default_initializable<V> && default_initializable<Pred>;
+   wording paragraph (3) renames the value subexpression V to X;
+   section VII updated to match.
+
+Post-fix verification (this workspace, fresh runs):
+  g++     13.3.0  -std=c++20  PASS    -std=c++23  PASS
+  clang++ 18.1.3  -std=c++20  PASS    -std=c++23  PASS
+  (all -O2 -Wall -Wextra -Werror)
+  ASan+UBSan (clang++ and g++, -std=c++20): CLEAN
+
+ADDENDUM 3 (2026-10-13, external review round 3):
+1. Predicate held in movable-box<Pred> (libstdc++ pattern): a plain
+   optional<Pred> deletes its assignment operators when Pred is not
+   assignable (e.g. a capturing lambda), leaving trim_view not a
+   view and unpipeable. The box reconstructs via emplace on the
+   non-assignable path. Paper wording updated to match.
+2. Paper section III.1 rewritten: the reverse|drop_while|reverse
+   composition is fully lazy (verified: yields "hi"; sized=1,
+   random_access=1, common=1, contiguous=0). The argument is now
+   loss of contiguity and of the base iterators only; the abstract
+   was aligned to the same claim.
+3. Closure-base feature test fixed: both toolchains report
+   __cpp_lib_ranges == 202202L in C++23 mode (not 202207L), so the
+   range_adaptor_closure path never compiled before; the guard is
+   now a preprocessor macro at >= 202202L, and a static_assert
+   tripwire in the tests proves the closure base is present in
+   C++23 builds. Header class template and the trimmable concept
+   now constrain on indirect_unary_predicate<const Pred, ...>
+   plus is_object_v<Pred>, matching the paper's synopsis; tests
+   gained a non-const-predicate negative case.
+4. Re-verification after round 3: PASS g++ 13.3.0 and clang++
+   18.1.3 at -std=c++20 and -std=c++23 (-O2 -Wall -Wextra -Werror);
+   ASan+UBSan CLEAN under both compilers (C++20).
+
+================================================================
+Addendum — 16 Oct 2026: movable_box self-assignment fix
+================================================================
+
+The same movable_box bug found in the drop_last_while header was
+present here: the assignment operators stored a non-assignable
+predicate (a capturing lambda) by destroying it and reconstructing
+from the destroyed object, so self-assigning a view corrupted its
+predicate (use-after-free under AddressSanitizer).
+
+Changes made on 16 Oct 2026:
+1. impl/views_trim.hpp: both movable_box assignment operators
+   (copy and move) now start with the self-assignment guard
+   `if (this == std::addressof(other)) return *this;`, matching
+   the standard's movable-box. <memory> included for
+   std::addressof.
+2. impl/test_views_trim.cpp: new regression test — a trim view
+   whose predicate is a lambda capturing a 64-char
+   std::string (heap allocated) is self-copy-assigned and
+   self-move-assigned, then iterated and checked.
+3. Makefile and build.sh: the Clang binary is no longer assumed
+   to be a specific name; both detect clang++ first and fall
+   back to clang++-18.
+
+Re-verification after the fix (16 Oct 2026): the full suite passes
+on g++ 13.3.0 and clang++ 18.1.3 at -std=c++20 and -std=c++23
+(-Wall -Wextra -Werror), and ASan+UBSan
+(-fsanitize=address,undefined -fno-sanitize-recover=all) runs are
+clean under both compilers at both standards. `make test` and
+`./build.sh` both pass end to end.
