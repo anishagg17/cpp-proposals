@@ -1,0 +1,3 @@
+wrote /home/hatch/workspace/cpp-proposals/views-drop-last-while/research/frequency-results.csv rows: 53
+verified rows against raw: 46
+ALL CSV NUMBERS MATCH RAW EVIDENCE

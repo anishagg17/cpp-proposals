@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Debian Code Search: find_last_not_of</title>
+<style type="text/css">
+@font-face{font-family:Inconsolata;src:local("Inconsolata"),url(/Inconsolata.woff2) format("woff2"),url(/Inconsolata.woff) format("woff")}@font-face{font-family:Roboto;font-style:normal;font-weight:400;src:local("Roboto"),local("Roboto Regular"),local("Roboto-Regular"),url(/Roboto-Regular.woff2) format("woff2"),url(/Roboto-Regular.woff) format("woff")}@font-face{font-family:Roboto;font-style:normal;font-weight:700;src:local("Roboto Bold"),local("Roboto-Bold"),url(/Roboto-Bold.woff2) format("woff2"),url(/Roboto-Bold.woff) format("woff")}body{background-image:linear-gradient(to bottom,#d7d9e2,#fff 70px);background-position:0 0;background-repeat:repeat-x;font-family:Roboto,sans-serif;font-size:100%;line-height:1.5;letter-spacing:.15px;margin:0;padding:0}#header{padding:0 10px 0 52px}#logo{position:absolute;top:0;left:0;border-left:1px solid transparent;border-right:1px solid transparent;border-bottom:1px solid transparent;width:50px;height:5.07em;min-height:65px}#logo a{display:block;height:100%}#logo img{margin-top:5px;position:absolute;bottom:.3em;overflow:auto;border:0}p.section{margin:0;padding:0 5px;font-family:monospace;font-size:13px;line-height:16px;color:#fff;letter-spacing:.08em;position:absolute;top:0;left:52px;background-color:#c70036}p.section a{color:#fff;text-decoration:none}#searchbox input[type=text]{width:350px}.hidecss{display:none}#searchbox{text-align:left;line-height:1;margin:0 10px 0 .5em;padding:1px 0;position:absolute;top:0;right:0;font-size:.75em}#navbar{border-bottom:1px solid #c70036}#navbar ul{margin:0;padding:0;overflow:hidden}#navbar li{list-style:none;float:left}#navbar a{display:block;padding:1.75em .5em .25em;color:#0035c7;text-decoration:none;border-left:1px solid transparent;border-right:1px solid transparent}#navbar a:hover,#navbar a:visited:hover{background-color:#f5f6f7;border-left:1px solid #d2d3d7;border-right:1px solid #d2d3d7;text-decoration:underline}a:link{color:#0035c7}a:visited{color:#54638c}#breadcrumbs{line-height:2;min-height:20px;margin:0;padding:0;font-size:.75em;background-color:#f5f6f7;border-bottom:1px solid #d2d3d7}#breadcrumbs:before{content:"/";margin-left:.5em;margin-right:.5em}@keyframes pos{0%{transform:translate(-40px)}to{transform:translate(0)}}#content{margin:0 10px 0 52px}#progressbar{margin-top:1em;margin-bottom:1em;width:100%;border-radius:4px;-webkit-mask-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);background-color:#333;box-shadow:inset 0 1px 2px #0000001a;overflow:hidden;height:30px}.progress-active{height:30px;line-height:28px;overflow:hidden}.stripes{height:30px;width:calc(100% + 40px);background-color:#cc1446}.progress-active .stripes{background-image:linear-gradient(135deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-size:40px 40px;animation:pos 2s linear infinite}#progressbar span{position:absolute;left:0;right:0;text-align:center;line-height:28px;color:#fff;z-index:1}#footer{border:1px solid #dfdfe0;border-left:0;border-right:0;background-color:#f5f6f7;padding:1em;margin:0 10px 0 52px;font-size:.75em;line-height:1.5em}hr{border-top:1px solid #d2d3d7;border-bottom:1px solid white;border-left:0;border-right:0;margin:1.4375em 0 1.5em;height:0;background-color:#bbb}
+
+
+pre, code {
+     
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+a code {
+    color: #00E;
+    font-size: 110%;
+}
+
+#results {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#results li {
+    margin-bottom: 1em;
+}
+
+#results small {
+    opacity: 0.4;
+}
+
+#pagination {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    width: 300px;
+}
+
+pre {
+    white-space: pre-wrap;        
+    white-space: -moz-pre-wrap;   
+    white-space: -pre-wrap;       
+    white-space: -o-pre-wrap;     
+    word-wrap: break-word;        
+}
+
+.lnr {
+    color: #999;
+    text-align: right;
+    padding-right: 1em;
+    padding-top: 0;
+    float: left;
+    width: em;
+}
+</style>
+<link rel="preload" href="/non-critical.min.css?cachebust=82be78ca2fec596457073ba7b1b3b7b8" as="style" onload="this.rel='stylesheet'">
+<noscript>
+<link rel="stylesheet" href="/non-critical.min.css?cachebust=82be78ca2fec596457073ba7b1b3b7b8">
+<meta http-equiv="refresh" content="5">
+</noscript>
+</head>
+<body>
+
+<div id="header">
+   <div id="upperheader">
+   <div id="logo">
+  <a href="./" title="Debian Home"><img src="/Pics/openlogo-50.svg?cachebust=ac5212938f5a587c0d68bbecb63ec675" alt="Debian" width="50" height="61"></a>
+  </div>
+  <p class="section"><a href="/">CODE SEARCH</a></p>
+<div id="searchbox">
+<form action="/search" method="get">
+<input type="text" name="q" value="find_last_not_of">
+<select name="literal">
+<option value="1" >literal</option>
+<option value="0" selected>regex</opiton>
+</select>
+<input type="submit" value="Search">
+</form>
+</div>
+
+ </div>
+<div id="navbar">
+<p class="hidecss"><a href="#content">Skip Quicknav</a></p>
+<ul>
+   <li><a href="./">Search</a></li>
+   <li><a href="./about">About Code Search</a></li>
+   <li><a href="./faq">FAQ</a></li>
+</ul>
+</div>
+	<p id="breadcrumbs">&nbsp; search results</p>
+</div>
+<div id="content">
+
+<div id="progressbar" style="display:none">
+  <div class="progress-bar progress-active" style="transition: none; width: 10%">
+    <span>Connecting to Debian Code Search…</span>
+    <div class="stripes">&nbsp;</div>
+    &nbsp;
+  </div>
+</div>
+<div id="errors">
+</div>
+
+<div id="packages">
+</div>
+<div id="packageshint" style="display: none">
+</div>
+
+<div id="options" style="display: none">
+<input type="checkbox" id="enable-perpackage" disabled="disabled" onclick="changeGrouping()"><label for="enable-perpackage" style="opacity: 0.5">Group search results by Debian source package</label>
+</div>
+
+<div id="normalresults" style="display: none">
+<h2>All results</h2>
+<div class="pagination"></div>
+<ul id="results"></ul>
+<div class="pagination"></div>
+</div>
+
+<div id="perpackage" style="display: none">
+<h2>Results by package</h2>
+<div class="perpackage-pagination"></div>
+<div id="perpackage-results"></div>
+<div class="perpackage-pagination"></div>
+</div>
+
+
+<noscript>
+<p>
+Still searching. This page will refresh itself every 5 seconds until the search
+results are available.
+</p>
+
+<p>
+Note that you are seeing this page because you have JavaScript disabled. For a
+much better user experience with Debian Code Search, enable JavaScript.
+</p>
+</noscript>
+
+</div>
+<div id="footer">
+<hr>
+<div id="fineprint">
+<p>© 2012 Debian Code Search - <a href="./contact" rel="nofollow">Contact / Send Feedback</a></p>
+<p>dcs-web <a href="https://github.com/Debian/dcs/commit/279efcd0506515c2cab929f0f998d701bd8951b6">279efcd</a></p>
+</div>
+</div>
+<script type="text/javascript">
+var el = document.getElementById('progressbar');
+if (el !== null) {
+    el.style.display = 'block';
+}
+</script>
+<script type="text/javascript" src="/instant.min.js?cachebust=b19c6ca7adad2717a7ddf5901a2c9831"></script>
+</body>
+</html>
+

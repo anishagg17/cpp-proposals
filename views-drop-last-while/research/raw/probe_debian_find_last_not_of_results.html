@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Debian Code Search: find_last_not_of</title>
+<style type="text/css">
+@font-face{font-family:Inconsolata;src:local("Inconsolata"),url(/Inconsolata.woff2) format("woff2"),url(/Inconsolata.woff) format("woff")}@font-face{font-family:Roboto;font-style:normal;font-weight:400;src:local("Roboto"),local("Roboto Regular"),local("Roboto-Regular"),url(/Roboto-Regular.woff2) format("woff2"),url(/Roboto-Regular.woff) format("woff")}@font-face{font-family:Roboto;font-style:normal;font-weight:700;src:local("Roboto Bold"),local("Roboto-Bold"),url(/Roboto-Bold.woff2) format("woff2"),url(/Roboto-Bold.woff) format("woff")}body{background-image:linear-gradient(to bottom,#d7d9e2,#fff 70px);background-position:0 0;background-repeat:repeat-x;font-family:Roboto,sans-serif;font-size:100%;line-height:1.5;letter-spacing:.15px;margin:0;padding:0}#header{padding:0 10px 0 52px}#logo{position:absolute;top:0;left:0;border-left:1px solid transparent;border-right:1px solid transparent;border-bottom:1px solid transparent;width:50px;height:5.07em;min-height:65px}#logo a{display:block;height:100%}#logo img{margin-top:5px;position:absolute;bottom:.3em;overflow:auto;border:0}p.section{margin:0;padding:0 5px;font-family:monospace;font-size:13px;line-height:16px;color:#fff;letter-spacing:.08em;position:absolute;top:0;left:52px;background-color:#c70036}p.section a{color:#fff;text-decoration:none}#searchbox input[type=text]{width:350px}.hidecss{display:none}#searchbox{text-align:left;line-height:1;margin:0 10px 0 .5em;padding:1px 0;position:absolute;top:0;right:0;font-size:.75em}#navbar{border-bottom:1px solid #c70036}#navbar ul{margin:0;padding:0;overflow:hidden}#navbar li{list-style:none;float:left}#navbar a{display:block;padding:1.75em .5em .25em;color:#0035c7;text-decoration:none;border-left:1px solid transparent;border-right:1px solid transparent}#navbar a:hover,#navbar a:visited:hover{background-color:#f5f6f7;border-left:1px solid #d2d3d7;border-right:1px solid #d2d3d7;text-decoration:underline}a:link{color:#0035c7}a:visited{color:#54638c}#breadcrumbs{line-height:2;min-height:20px;margin:0;padding:0;font-size:.75em;background-color:#f5f6f7;border-bottom:1px solid #d2d3d7}#breadcrumbs:before{content:"/";margin-left:.5em;margin-right:.5em}@keyframes pos{0%{transform:translate(-40px)}to{transform:translate(0)}}#content{margin:0 10px 0 52px}#progressbar{margin-top:1em;margin-bottom:1em;width:100%;border-radius:4px;-webkit-mask-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);background-color:#333;box-shadow:inset 0 1px 2px #0000001a;overflow:hidden;height:30px}.progress-active{height:30px;line-height:28px;overflow:hidden}.stripes{height:30px;width:calc(100% + 40px);background-color:#cc1446}.progress-active .stripes{background-image:linear-gradient(135deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-size:40px 40px;animation:pos 2s linear infinite}#progressbar span{position:absolute;left:0;right:0;text-align:center;line-height:28px;color:#fff;z-index:1}#footer{border:1px solid #dfdfe0;border-left:0;border-right:0;background-color:#f5f6f7;padding:1em;margin:0 10px 0 52px;font-size:.75em;line-height:1.5em}hr{border-top:1px solid #d2d3d7;border-bottom:1px solid white;border-left:0;border-right:0;margin:1.4375em 0 1.5em;height:0;background-color:#bbb}
+
+
+pre, code {
+     
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+a code {
+    color: #00E;
+    font-size: 110%;
+}
+
+#results {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#results li {
+    margin-bottom: 1em;
+}
+
+#results small {
+    opacity: 0.4;
+}
+
+#pagination {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    width: 300px;
+}
+
+pre {
+    white-space: pre-wrap;        
+    white-space: -moz-pre-wrap;   
+    white-space: -pre-wrap;       
+    white-space: -o-pre-wrap;     
+    word-wrap: break-word;        
+}
+
+.lnr {
+    color: #999;
+    text-align: right;
+    padding-right: 1em;
+    padding-top: 0;
+    float: left;
+    width: em;
+}
+
+#content {
+    min-height: 100vh;  
+}
+</style>
+<link rel="preload" href="/non-critical.min.css?cachebust=82be78ca2fec596457073ba7b1b3b7b8" as="style" onload="this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="/non-critical.min.css?cachebust=82be78ca2fec596457073ba7b1b3b7b8"></noscript>
+<link rel="search"
+  type="application/opensearchdescription+xml"
+  href="/opensearch.xml?cachebust=d0387f3af76b6474bf56d2f5638636b4"
+  title="Debian Code Search">
+</head>
+<body>
+
+<div id="header">
+   <div id="upperheader">
+   <div id="logo">
+  <a href="./" title="Debian Home"><img src="/Pics/openlogo-50.svg?cachebust=ac5212938f5a587c0d68bbecb63ec675" alt="Debian" width="50" height="61"></a>
+  </div>
+  <p class="section"><a href="/">CODE SEARCH</a></p>
+<div id="searchbox">
+<form action="/search" method="get">
+<input type="text" name="q" value="find_last_not_of">
+<select name="literal">
+<option value="1" >literal</option>
+<option value="0" selected>regex</opiton>
+</select>
+<input type="submit" value="Search">
+</form>
+</div>
+
+ </div>
+<div id="navbar">
+<p class="hidecss"><a href="#content">Skip Quicknav</a></p>
+<ul>
+   <li><a href="./">Search</a></li>
+   <li><a href="./about">About Code Search</a></li>
+   <li><a href="./faq">FAQ</a></li>
+</ul>
+</div>
+	<p id="breadcrumbs">&nbsp; search results</p>
+</div>
+<div id="content">
+
+<div id="progressbar" style="display:none">
+  <div class="progress-bar progress-active" style="transition: none; width: 10%">
+    <span>Connecting to Debian Code Search…</span>
+    <div class="stripes">&nbsp;</div>
+    &nbsp;
+  </div>
+</div>
+<div id="errors">
+</div>
+
+<div id="packages">
+</div>
+<div id="packageshint" style="display: none">
+</div>
+
+<div id="options" style="display: none">
+<input type="checkbox" id="enable-perpackage" disabled="disabled" onclick="changeGrouping()"><label for="enable-perpackage" style="opacity: 0.5">Group search results by Debian source package</label>
+</div>
+
+<div id="normalresults" style="display: none">
+<h2>All results</h2>
+<div class="pagination"></div>
+<ul id="results"></ul>
+<div class="pagination"></div>
+</div>
+
+<div id="perpackage" style="display: none">
+<h2>Results by package</h2>
+<div class="perpackage-pagination"></div>
+<div id="perpackage-results"></div>
+<div class="perpackage-pagination"></div>
+</div>
+
+
+<noscript>
+<h2>Search Results for "find_last_not_of"</h2>
+
+<p>
+<strong>Filter by package:</strong>
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ascite">scite</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Acovtobed">covtobed</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alibtorrent">libtorrent</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Asentencepiece">sentencepiece</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Amariadb">mariadb</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Acmaple">cmaple</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Adrogon">drogon</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ar-cran-terra">r-cran-terra</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Axournalpp">xournalpp</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Asupertux">supertux</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Acatch2">catch2</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3A4pane">4pane</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Afontforge">fontforge</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Abobcat">bobcat</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aconnectome-workbench">connectome-workbench</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aanope">anope</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Agsimplecal">gsimplecal</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ahalide">halide</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3As3fs-fuse">s3fs-fuse</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aabiword">abiword</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aolm">olm</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alibclaw">libclaw</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Avodovod">vodovod</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aopenbabel">openbabel</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Axtensor">xtensor</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aappstream-generator">appstream-generator</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Az3">z3</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Akokkos">kokkos</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Akdevelop">kdevelop</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Anomacs">nomacs</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Apython-grpc-tools">python-grpc-tools</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Agcc-arm-none-eabi">gcc-arm-none-eabi</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Adcmtk">dcmtk</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aopendht">opendht</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aaudacity">audacity</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aguix">guix</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Avulkan-utility-libraries">vulkan-utility-libraries</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Amariadb-connector-odbc">mariadb-connector-odbc</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aembree">embree</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aradium-compressor">radium-compressor</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ar-bioc-affxparser">r-bioc-affxparser</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aqpid-proton">qpid-proton</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alibfds">libfds</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aaqemu">aqemu</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Accbuild">ccbuild</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Axgboost">xgboost</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Avotca">votca</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aericw-tools">ericw-tools</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Amapnik">mapnik</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Arocksdb">rocksdb</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alevel-zero">level-zero</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Avbrfix">vbrfix</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aopentracing-cpp">opentracing-cpp</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aodil">odil</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Altt-control">ltt-control</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aapache-arrow">apache-arrow</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ajsoncons">jsoncons</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Admrgpp">dmrgpp</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Avoronota">voronota</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Asvxlink">svxlink</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Axeus">xeus</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ausbguard">usbguard</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Anload">nload</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alog4cpp">log4cpp</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aopenscenegraph">openscenegraph</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alibkysdk-ai-private">libkysdk-ai-private</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Arnp">rnp</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Axfce4-sensors-plugin">xfce4-sensors-plugin</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Afairy-stockfish">fairy-stockfish</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Alibopendbx">libopendbx</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Arelion">relion</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Apencil2d">pencil2d</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Acsladspa">csladspa</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Amysql-connector-c%2B%2B">mysql-connector-c&#43;&#43;</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ar-cran-sass">r-cran-sass</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Afirefox-esr">firefox-esr</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aaugustus">augustus</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Adoxygen">doxygen</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aopenmw">openmw</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aspdlog">spdlog</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aspectra">spectra</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Agdal">gdal</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ascim">scim</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Asheenbidi">sheenbidi</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Acppcheck">cppcheck</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Afreecad">freecad</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Abiboumi">biboumi</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aorganicmaps">organicmaps</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aprojectm">projectm</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aqgis">qgis</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aconky">conky</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Abornagain">bornagain</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Atippecanoe">tippecanoe</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Amp3diags">mp3diags</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aandroid-platform-frameworks-base">android-platform-frameworks-base</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Acollada-dom">collada-dom</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Asolarpowerlog">solarpowerlog</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aapparmor">apparmor</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Ar-cran-readxl">r-cran-readxl</a>,
+
+<a href="/search?_=_&amp;q=find_last_not_of&#43;package%3Aduckdb">duckdb</a>,
+
+</p>
+
+<p>
+<a href="/search?perpkg=1&amp;q=find_last_not_of">Group results by source package</a>
+</p>
+
+<p>
+<strong>Pages:</strong> <a style="font-weight: bold" href="/search?q=find_last_not_of&page=0">1</a> <a style="" href="/search?q=find_last_not_of&page=1">2</a> <a style="" href="/search?q=find_last_not_of&page=2">3</a> <a style="" href="/search?q=find_last_not_of&page=3">4</a> <a style="" href="/search?q=find_last_not_of&page=4">5</a> <a style="" href="/search?q=find_last_not_of&page=5">6</a> <a style="" href="/search?q=find_last_not_of&page=6">7</a> <a style="" href="/search?q=find_last_not_of&page=7">8</a> <a style="" href="/search?q=find_last_not_of&page=8">9</a> <a style="" href="/search?q=find_last_not_of&page=9">10</a> … <a href="/search?q=find_last_not_of&page=944">945</a> <a href="/search?q=find_last_not_of&page=1" rel="next">&gt;</a> 
+</p>
+
+<ul id="results">
+
+<li><a href="/show?file=libreoffice_4%3a26.8.1.1-3%2fcodemaker%2fsource%2frustmaker%2fcpproduce.cxx&line=1335#L1335"><code><strong>libreoffice</strong>_4:26.8.1.1-3/codemaker/source/rustmaker/cpproduce.cxx</code>:1335</a><br>
+<pre>
+        // Trim whitespace<br>        arg.erase(0, arg.find_first_not_of(&#34; \t&#34;));<br><strong>        arg.erase(arg.find_last_not_of(&#34; \t&#34;) + 1);</strong><br>        // Recursively process nested template arguments first
+</pre>
+
+PathRank: 5.248521, Rank: 5.3723</li>
+
+<li><a href="/show?file=libreoffice_4%3a26.8.1.1-3%2fbridges%2fsource%2fnet_uno%2fnet_base.cxx&line=154#L154"><code><strong>libreoffice</strong>_4:26.8.1.1-3/bridges/source/net_uno/net_base.cxx</code>:154</a><br>
+<pre>
+void map_net_type_to_uno(std::u16string_view sTypeName, OUStringBuffer&amp; buffer)<br>{<br><strong>    size_t bracketsStart = sTypeName.find_last_not_of(u&#34;[]&#34;);</strong><br>    bool isSequence = bracketsStart != std::u16string_view::npos;<br>    std::u16string_view sBrackets = isSequence ? sTypeName.substr(bracketsStart + 1) : u&#34;&#34;;
+</pre>
+
+PathRank: 5.248521, Rank: 5.371341</li>
+
+<li><a href="/show?file=libreoffice_4%3a26.8.1.1-3%2fhelpcompiler%2fsource%2fHelpCompiler.cxx&line=282#L282"><code><strong>libreoffice</strong>_4:26.8.1.1-3/helpcompiler/source/HelpCompiler.cxx</code>:282</a><br>
+<pre>
+static void trim(std::string&amp; str)<br>{<br><strong>    std::string::size_type pos = str.find_last_not_of(&#39; &#39;);</strong><br>    if(pos != std::string::npos)<br>    {
+</pre>
+
+PathRank: 5.248521, Rank: 5.3705974</li>
+
+<li><a href="/show?file=libreoffice_4%3a26.8.1.1-3%2flingucomponent%2fsource%2fhyphenator%2fhyphen%2fhyphenimp.cxx&line=336#L336"><code><strong>libreoffice</strong>_4:26.8.1.1-3/lingucomponent/source/hyphenator/hyphen/hyphenimp.cxx</code>:336</a><br>
+<pre>
+    // now strip off any ending periods<br><strong>    auto lastValidPos = std::string_view(encWord).find_last_not_of(&#39;.&#39;);</strong><br>    if (lastValidPos == std::string_view::npos)<br>        return {};
+</pre>
+
+PathRank: 5.248521, Rank: 5.3681602</li>
+
+<li><a href="/show?file=qt6-base_6.11.2%2bdfsg-5%2fsrc%2ftestlib%2f3rdparty%2fcatch2%2fcatch_p.h&line=15070#L15070"><code><strong>qt6-base</strong>_6.11.2&#43;dfsg-5/src/testlib/3rdparty/catch2/catch_p.h</code>:15070</a><br>
+<pre>
+        &lt;&lt; value;<br>    std::string d = rss.str();<br><strong>    std::size_t i = d.find_last_not_of( &#39;0&#39; );</strong><br>    if( i != std::string::npos &amp;&amp; i != d.size()-1 ) {<br>        if( d[i] == &#39;.&#39; )
+</pre>
+
+PathRank: 2.4604228, Rank: 2.5878868</li>
+
+<li><a href="/show?file=qt6-base_6.11.2%2bdfsg-5%2fsrc%2ftestlib%2f3rdparty%2fcatch2%2fcatch_p.h&line=13847#L13847"><code><strong>qt6-base</strong>_6.11.2&#43;dfsg-5/src/testlib/3rdparty/catch2/catch_p.h</code>:13847</a><br>
+<pre>
+        static char const* whitespaceChars = &#34;\n\r\t &#34;;<br>        std::string::size_type start = str.find_first_not_of( whitespaceChars );<br><strong>        std::string::size_type end = str.find_last_not_of( whitespaceChars );</strong><br>        return start != std::string::npos ? str.substr( start, 1+end-start ) : std::string();
+</pre>
+
+PathRank: 2.4604228, Rank: 2.5806956</li>
+
+<li><a href="/show?file=vlc_3.0.24-3%2fmodules%2fdemux%2fadaptive%2ftools%2fHelper.cpp&line=108#L108"><code><strong>vlc</strong>_3.0.24-3/modules/demux/adaptive/tools/Helper.cpp</code>:108</a><br>
+<pre>
+std::string &amp; Helper::rtrim(std::string &amp;s, const std::string &amp;l)<br>{<br><strong>    std::size_t p = s.find_last_not_of(l);</strong><br>    if(p != std::string::npos)<br>        s.erase(p + 1);
+</pre>
+
+PathRank: 2.2919927, Rank: 2.417808</li>
+
+<li><a href="/show?file=apt_3.3.3%2fapt-pkg%2fcontrib%2fgpgv.cc&line=39#L39"><code><strong>apt</strong>_3.3.3/apt-pkg/contrib/gpgv.cc</code>:39</a><br>
+<pre>
+   size_t buffer_size = 0;<br>   int line_length = 0;<br><strong>   // a &#34;normal&#34; find_last_not_of returns npos if not found</strong><br>   int find_last_not_of_length(std::string_view const bad) const<br>   {
+</pre>
+
+PathRank: 2.281342, Rank: 2.4170868</li>
+
+<li><a href="/show?file=apt_3.3.3%2fmethods%2faptmethod.h&line=521#L521"><code><strong>apt</strong>_3.3.3/methods/aptmethod.h</code>:521</a><br>
+<pre>
+      while (APT::String::Startswith(Change, &#34;../&#34;))<br>      {<br><strong>	 Path.erase(Path.find_last_not_of(&#39;/&#39;));</strong><br>     Path = flNotFile(Path);<br>     Change.erase(0, 3);
+</pre>
+
+PathRank: 2.281342, Rank: 2.4129112</li>
+
+<li><a href="/show?file=apt_3.3.3%2fapt-pkg%2fcontrib%2ffileutl.cc&line=2818#L2818"><code><strong>apt</strong>_3.3.3/apt-pkg/contrib/fileutl.cc</code>:2818</a><br>
+<pre>
+   } while (len == buflen - 1 &amp;&amp; buffer[len - 2] != &#39;\n&#39;);<br>   // remove the newline at the end<br><strong>   auto const i = To.find_last_not_of(&#34;\r\n&#34;);</strong><br>   if (i == std::string::npos)<br>      To.clear();
+</pre>
+
+PathRank: 2.281342, Rank: 2.4109287</li>
+
+</ul>
+<p>
+<strong>Pages:</strong> <a style="font-weight: bold" href="/search?q=find_last_not_of&page=0">1</a> <a style="" href="/search?q=find_last_not_of&page=1">2</a> <a style="" href="/search?q=find_last_not_of&page=2">3</a> <a style="" href="/search?q=find_last_not_of&page=3">4</a> <a style="" href="/search?q=find_last_not_of&page=4">5</a> <a style="" href="/search?q=find_last_not_of&page=5">6</a> <a style="" href="/search?q=find_last_not_of&page=6">7</a> <a style="" href="/search?q=find_last_not_of&page=7">8</a> <a style="" href="/search?q=find_last_not_of&page=8">9</a> <a style="" href="/search?q=find_last_not_of&page=9">10</a> … <a href="/search?q=find_last_not_of&page=944">945</a> <a href="/search?q=find_last_not_of&page=1" rel="next">&gt;</a> 
+</p>
+</noscript>
+
+</div>
+<div id="footer">
+<hr>
+<div id="fineprint">
+<p>© 2012 Debian Code Search - <a href="./contact" rel="nofollow">Contact / Send Feedback</a></p>
+<p>dcs-web <a href="https://github.com/Debian/dcs/commit/279efcd0506515c2cab929f0f998d701bd8951b6">279efcd</a></p>
+</div>
+</div>
+<script type="text/javascript">
+var el = document.getElementById('progressbar');
+if (el !== null) {
+    el.style.display = 'block';
+}
+</script>
+<script type="text/javascript" src="/instant.min.js?cachebust=b19c6ca7adad2717a7ddf5901a2c9831"></script>
+</body>
+</html>
+

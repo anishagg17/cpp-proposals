@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Debian Code Search: trim_end_matches</title>
+<style type="text/css">
+@font-face{font-family:Inconsolata;src:local("Inconsolata"),url(/Inconsolata.woff2) format("woff2"),url(/Inconsolata.woff) format("woff")}@font-face{font-family:Roboto;font-style:normal;font-weight:400;src:local("Roboto"),local("Roboto Regular"),local("Roboto-Regular"),url(/Roboto-Regular.woff2) format("woff2"),url(/Roboto-Regular.woff) format("woff")}@font-face{font-family:Roboto;font-style:normal;font-weight:700;src:local("Roboto Bold"),local("Roboto-Bold"),url(/Roboto-Bold.woff2) format("woff2"),url(/Roboto-Bold.woff) format("woff")}body{background-image:linear-gradient(to bottom,#d7d9e2,#fff 70px);background-position:0 0;background-repeat:repeat-x;font-family:Roboto,sans-serif;font-size:100%;line-height:1.5;letter-spacing:.15px;margin:0;padding:0}#header{padding:0 10px 0 52px}#logo{position:absolute;top:0;left:0;border-left:1px solid transparent;border-right:1px solid transparent;border-bottom:1px solid transparent;width:50px;height:5.07em;min-height:65px}#logo a{display:block;height:100%}#logo img{margin-top:5px;position:absolute;bottom:.3em;overflow:auto;border:0}p.section{margin:0;padding:0 5px;font-family:monospace;font-size:13px;line-height:16px;color:#fff;letter-spacing:.08em;position:absolute;top:0;left:52px;background-color:#c70036}p.section a{color:#fff;text-decoration:none}#searchbox input[type=text]{width:350px}.hidecss{display:none}#searchbox{text-align:left;line-height:1;margin:0 10px 0 .5em;padding:1px 0;position:absolute;top:0;right:0;font-size:.75em}#navbar{border-bottom:1px solid #c70036}#navbar ul{margin:0;padding:0;overflow:hidden}#navbar li{list-style:none;float:left}#navbar a{display:block;padding:1.75em .5em .25em;color:#0035c7;text-decoration:none;border-left:1px solid transparent;border-right:1px solid transparent}#navbar a:hover,#navbar a:visited:hover{background-color:#f5f6f7;border-left:1px solid #d2d3d7;border-right:1px solid #d2d3d7;text-decoration:underline}a:link{color:#0035c7}a:visited{color:#54638c}#breadcrumbs{line-height:2;min-height:20px;margin:0;padding:0;font-size:.75em;background-color:#f5f6f7;border-bottom:1px solid #d2d3d7}#breadcrumbs:before{content:"/";margin-left:.5em;margin-right:.5em}@keyframes pos{0%{transform:translate(-40px)}to{transform:translate(0)}}#content{margin:0 10px 0 52px}#progressbar{margin-top:1em;margin-bottom:1em;width:100%;border-radius:4px;-webkit-mask-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);background-color:#333;box-shadow:inset 0 1px 2px #0000001a;overflow:hidden;height:30px}.progress-active{height:30px;line-height:28px;overflow:hidden}.stripes{height:30px;width:calc(100% + 40px);background-color:#cc1446}.progress-active .stripes{background-image:linear-gradient(135deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);background-size:40px 40px;animation:pos 2s linear infinite}#progressbar span{position:absolute;left:0;right:0;text-align:center;line-height:28px;color:#fff;z-index:1}#footer{border:1px solid #dfdfe0;border-left:0;border-right:0;background-color:#f5f6f7;padding:1em;margin:0 10px 0 52px;font-size:.75em;line-height:1.5em}hr{border-top:1px solid #d2d3d7;border-bottom:1px solid white;border-left:0;border-right:0;margin:1.4375em 0 1.5em;height:0;background-color:#bbb}
+
+
+pre, code {
+     
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+a code {
+    color: #00E;
+    font-size: 110%;
+}
+
+#results {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#results li {
+    margin-bottom: 1em;
+}
+
+#results small {
+    opacity: 0.4;
+}
+
+#pagination {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    width: 300px;
+}
+
+pre {
+    white-space: pre-wrap;        
+    white-space: -moz-pre-wrap;   
+    white-space: -pre-wrap;       
+    white-space: -o-pre-wrap;     
+    word-wrap: break-word;        
+}
+
+.lnr {
+    color: #999;
+    text-align: right;
+    padding-right: 1em;
+    padding-top: 0;
+    float: left;
+    width: em;
+}
+
+#content {
+    min-height: 100vh;  
+}
+</style>
+<link rel="preload" href="/non-critical.min.css?cachebust=82be78ca2fec596457073ba7b1b3b7b8" as="style" onload="this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="/non-critical.min.css?cachebust=82be78ca2fec596457073ba7b1b3b7b8"></noscript>
+<link rel="search"
+  type="application/opensearchdescription+xml"
+  href="/opensearch.xml?cachebust=d0387f3af76b6474bf56d2f5638636b4"
+  title="Debian Code Search">
+</head>
+<body>
+
+<div id="header">
+   <div id="upperheader">
+   <div id="logo">
+  <a href="./" title="Debian Home"><img src="/Pics/openlogo-50.svg?cachebust=ac5212938f5a587c0d68bbecb63ec675" alt="Debian" width="50" height="61"></a>
+  </div>
+  <p class="section"><a href="/">CODE SEARCH</a></p>
+<div id="searchbox">
+<form action="/search" method="get">
+<input type="text" name="q" value="trim_end_matches">
+<select name="literal">
+<option value="1" >literal</option>
+<option value="0" selected>regex</opiton>
+</select>
+<input type="submit" value="Search">
+</form>
+</div>
+
+ </div>
+<div id="navbar">
+<p class="hidecss"><a href="#content">Skip Quicknav</a></p>
+<ul>
+   <li><a href="./">Search</a></li>
+   <li><a href="./about">About Code Search</a></li>
+   <li><a href="./faq">FAQ</a></li>
+</ul>
+</div>
+	<p id="breadcrumbs">&nbsp; search results</p>
+</div>
+<div id="content">
+
+<div id="progressbar" style="display:none">
+  <div class="progress-bar progress-active" style="transition: none; width: 10%">
+    <span>Connecting to Debian Code Search…</span>
+    <div class="stripes">&nbsp;</div>
+    &nbsp;
+  </div>
+</div>
+<div id="errors">
+</div>
+
+<div id="packages">
+</div>
+<div id="packageshint" style="display: none">
+</div>
+
+<div id="options" style="display: none">
+<input type="checkbox" id="enable-perpackage" disabled="disabled" onclick="changeGrouping()"><label for="enable-perpackage" style="opacity: 0.5">Group search results by Debian source package</label>
+</div>
+
+<div id="normalresults" style="display: none">
+<h2>All results</h2>
+<div class="pagination"></div>
+<ul id="results"></ul>
+<div class="pagination"></div>
+</div>
+
+<div id="perpackage" style="display: none">
+<h2>Results by package</h2>
+<div class="perpackage-pagination"></div>
+<div id="perpackage-results"></div>
+<div class="perpackage-pagination"></div>
+</div>
+
+
+<noscript>
+<h2>Search Results for "trim_end_matches"</h2>
+
+<p>
+<strong>Filter by package:</strong>
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-zerocopy">rust-zerocopy</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-alsa-sys">rust-alsa-sys</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Apython-maturin">python-maturin</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-juniper-codegen">rust-juniper-codegen</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Apython-bumble">python-bumble</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-indicatif">rust-indicatif</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Adocumentdb">documentdb</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-debian-workbench">rust-debian-workbench</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-inflector">rust-inflector</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Agnome-podcasts">gnome-podcasts</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-snafu-derive">rust-snafu-derive</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Avirtme-ng">virtme-ng</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-icu-plurals">rust-icu-plurals</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Agnome-video-trimmer">gnome-video-trimmer</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-amdgpu-sysfs">rust-amdgpu-sysfs</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Asip-tester">sip-tester</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-cached">rust-cached</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-syntect-no-panic">rust-syntect-no-panic</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-debian-repro-status">rust-debian-repro-status</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-html2md">rust-html2md</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-codespan-reporting">rust-codespan-reporting</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-procs">rust-procs</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-jsonschema">rust-jsonschema</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-forensic-adb">rust-forensic-adb</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Amicro">micro</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-asn1">rust-asn1</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-ognibuild">rust-ognibuild</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-trim-in-place">rust-trim-in-place</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-relative-path">rust-relative-path</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-udevrs">rust-udevrs</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-mdns-sd">rust-mdns-sd</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Aceph">ceph</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-in-toto">rust-in-toto</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-human-bytes">rust-human-bytes</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-samply-symbols">rust-samply-symbols</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-sqlx-core">rust-sqlx-core</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-microformats">rust-microformats</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-schemars">rust-schemars</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-derive-more-0.99">rust-derive-more-0.99</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-sqlformat">rust-sqlformat</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-grass-compiler">rust-grass-compiler</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-insta">rust-insta</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-actix-http">rust-actix-http</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-shlex">rust-shlex</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-yamlpatch">rust-yamlpatch</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-chronoutil">rust-chronoutil</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-handlebars">rust-handlebars</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-little-exif">rust-little-exif</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-expectrl">rust-expectrl</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-spdx">rust-spdx</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Apython-minijinja">python-minijinja</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-comrak">rust-comrak</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-libdrm-amdgpu-sys">rust-libdrm-amdgpu-sys</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Atbtools">tbtools</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-lopdf">rust-lopdf</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-rust-ini">rust-rust-ini</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-naga">rust-naga</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-uutests">rust-uutests</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-speedate">rust-speedate</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-ron">rust-ron</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-linktime-proc-macro">rust-linktime-proc-macro</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-actix-web">rust-actix-web</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-sctk-adwaita">rust-sctk-adwaita</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-timestamped-socket">rust-timestamped-socket</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-str-inflector">rust-str-inflector</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Abustle">bustle</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-webbrowser">rust-webbrowser</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-cargo-c">rust-cargo-c</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-redis">rust-redis</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-lipsum">rust-lipsum</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-launchpadlib">rust-launchpadlib</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3A389-ds-base">389-ds-base</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-puffin">rust-puffin</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Astarship">starship</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-toml-0.5">rust-toml-0.5</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Aruby-commonmarker">ruby-commonmarker</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-reqwest">rust-reqwest</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-npm-package-json">rust-npm-package-json</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-markup5ever-rcdom">rust-markup5ever-rcdom</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arudof">rudof</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-indenter">rust-indenter</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-libbpf-rs">rust-libbpf-rs</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-dromedary">rust-dromedary</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-bacon">rust-bacon</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Agcc-arm-none-eabi">gcc-arm-none-eabi</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-sqlx-postgres">rust-sqlx-postgres</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-framework-lib">rust-framework-lib</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-voca-rs">rust-voca-rs</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Auv">uv</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-visioncortex">rust-visioncortex</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-wholesym">rust-wholesym</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-nonstick2">rust-nonstick2</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Aruff">ruff</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-upstream-ontologist">rust-upstream-ontologist</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-axum">rust-axum</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-rst-parser">rust-rst-parser</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Aflashrom">flashrom</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Apay-respects">pay-respects</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Aclamav">clamav</a>,
+
+<a href="/search?_=_&amp;q=trim_end_matches&#43;package%3Arust-bat">rust-bat</a>,
+
+</p>
+
+<p>
+<a href="/search?perpkg=1&amp;q=trim_end_matches">Group results by source package</a>
+</p>
+
+<p>
+<strong>Pages:</strong> <a style="font-weight: bold" href="/search?q=trim_end_matches&page=0">1</a> <a style="" href="/search?q=trim_end_matches&page=1">2</a> <a style="" href="/search?q=trim_end_matches&page=2">3</a> <a style="" href="/search?q=trim_end_matches&page=3">4</a> <a style="" href="/search?q=trim_end_matches&page=4">5</a> <a style="" href="/search?q=trim_end_matches&page=5">6</a> <a style="" href="/search?q=trim_end_matches&page=6">7</a> <a style="" href="/search?q=trim_end_matches&page=7">8</a> <a style="" href="/search?q=trim_end_matches&page=8">9</a> <a style="" href="/search?q=trim_end_matches&page=9">10</a> … <a href="/search?q=trim_end_matches&page=149">150</a> <a href="/search?q=trim_end_matches&page=1" rel="next">&gt;</a> 
+</p>
+
+<ul id="results">
+
+<li><a href="/show?file=vim_2%3a9.2.0858-1%2fruntime%2fsyntax%2fjust.vim&line=247#L247"><code><strong>vim</strong>_2:9.2.0858-1/runtime/syntax/just.vim</code>:247</a><br>
+<pre>
+&#34; error() is intentionally not included in this list<br>syn keyword justBuiltInFunction<br><strong>   \ absolute_path append arch blake3 blake3_file cache_dir cache_directory canonicalize capitalize choose clean config_dir config_directory config_local_dir config_local_directory data_dir data_directory data_local_dir data_local_directory datetime datetime_utc encode_uri_component env env_var env_var_or_default executable_dir executable_directory extension file_name file_stem home_dir home_directory invocation_dir invocation_dir_native invocation_directory invocation_directory_native is_dependency join just_executable just_pid justfile justfile_dir justfile_directory kebabcase lowercamelcase lowercase module_dir module_directory module_file num_cpus os os_family parent_dir parent_directory path_exists prepend quote replace replace_regex semver_matches sha256 sha256_file shell shoutykebabcase shoutysnakecase snakecase source_dir source_directory source_file style titlecase trim trim_end trim_end_match trim_end_matches trim_start trim_start_match trim_start_matches uppercamelcase uppercase uuid without_extension</strong><br>   \ contained
+</pre>
+
+PathRank: 2.3508456, Rank: 2.4751277</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2fdata-url%2fsrc%2flib.rs&line=177#L177"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/data-url/src/lib.rs</code>:177</a><br>
+<pre>
+    // Trim C0 control or space<br><strong>    Some(after_colon.trim_end_matches(|ch| ch &lt;= &#39; &#39;))</strong><br>}
+</pre>
+
+PathRank: 1.901598, Rank: 2.044506</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2fdata-url%2fsrc%2fmime.rs&line=70#L70"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/data-url/src/mime.rs</code>:70</a><br>
+<pre>
+    let (subtype, rest) = split2(rest?, &#39;;&#39;);<br><strong>    let subtype = subtype.trim_end_matches(http_whitespace);</strong><br>    require!(only_http_token_code_points(subtype) &amp;&amp; !subtype.is_empty());
+</pre>
+
+PathRank: 1.901598, Rank: 2.042747</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2fmoxcms%2fsrc%2freader.rs&line=103#L103"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/moxcms/src/reader.rs</code>:103</a><br>
+<pre>
+    let wc = utf16be_to_utf16(uc_data)?;<br>    let s = String::from_utf16_lossy(&amp;wc)<br><strong>        .trim_end_matches(&#39;\0&#39;)</strong><br>        .to_string();<br>    Ok(Some((language_code, s)))
+</pre>
+
+PathRank: 1.901598, Rank: 2.0422897</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2flopdf%2fexamples%2fdebug_compression_full.rs&line=118#L118"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/lopdf/examples/debug_compression_full.rs</code>:118</a><br>
+<pre>
+    // Actually save<br><strong>    let output_file = format!(&#34;{}_compressed.pdf&#34;, input_file.trim_end_matches(&#34;.pdf&#34;));</strong><br>    let mut buffer = Vec::new();<br>    doc.save_with_options(&amp;mut buffer, options)?;
+</pre>
+
+PathRank: 1.901598, Rank: 2.032014</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2fderive_more-impl%2fsrc%2futils.rs&line=379#L379"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/derive_more-impl/src/utils.rs</code>:379</a><br>
+<pre>
+        add_type_bound: bool,<br>    ) -&gt; Result&lt;State&lt;&#39;arg_input&gt;&gt; {<br><strong>        let trait_name = trait_name.trim_end_matches(&#34;ToInner&#34;);</strong><br>        let trait_ident = format_ident!(&#34;{trait_name}&#34;);<br>        let method_ident = format_ident!(&#34;{trait_attr}&#34;);
+</pre>
+
+PathRank: 1.901598, Rank: 2.0319672</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2fderive_more-impl%2fsrc%2futils.rs&line=520#L520"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/derive_more-impl/src/utils.rs</code>:520</a><br>
+<pre>
+        default_info: FullMetaInfo,<br>    ) -&gt; Result&lt;State&lt;&#39;arg_input&gt;&gt; {<br><strong>        let trait_name = trait_name.trim_end_matches(&#34;ToInner&#34;);</strong><br>        let trait_ident = format_ident!(&#34;{trait_name}&#34;);<br>        let method_ident = format_ident!(&#34;{trait_attr}&#34;);
+</pre>
+
+PathRank: 1.901598, Rank: 2.0319672</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2flopdf%2fexamples%2fdebug_compression_full.rs&line=49#L49"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/lopdf/examples/debug_compression_full.rs</code>:49</a><br>
+<pre>
+    // Create debug log file<br><strong>    let debug_log_path = format!(&#34;{}_debug_log.txt&#34;, input_file.trim_end_matches(&#34;.pdf&#34;));</strong><br>    let mut debug_log = File::create(&amp;debug_log_path)?;<br>    writeln!(debug_log, &#34;PDF Compression Debug Log for: {}&#34;, input_file)?;
+</pre>
+
+PathRank: 1.901598, Rank: 2.0317543</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2flopdf%2fexamples%2fcompress_existing_pdf.rs&line=61#L61"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/lopdf/examples/compress_existing_pdf.rs</code>:61</a><br>
+<pre>
+    // Save with object streams (modern format)<br><strong>    let output_modern = format!(&#34;{}_compressed.pdf&#34;, input_file.trim_end_matches(&#34;.pdf&#34;));</strong><br>    let mut modern_file = std::fs::File::create(&amp;output_modern)?;<br>    doc.save_modern(&amp;mut modern_file)?;
+</pre>
+
+PathRank: 1.901598, Rank: 2.0317543</li>
+
+<li><a href="/show?file=librsvg_2.63.2%2bdfsg-1%2fdebian%2fmissing-sources%2fjiff-core%2fsrc%2ftz%2fposix.rs&line=2658#L2658"><code><strong>librsvg</strong>_2.63.2&#43;dfsg-1/debian/missing-sources/jiff-core/src/tz/posix.rs</code>:2658</a><br>
+<pre>
+        assert_eq!(<br>            p.parse_quoted_abbreviation().unwrap(),<br><strong>            tz.trim_end_matches(&#34;&gt;&#34;)</strong><br>        );
+</pre>
+
+PathRank: 1.901598, Rank: 2.0315893</li>
+
+</ul>
+<p>
+<strong>Pages:</strong> <a style="font-weight: bold" href="/search?q=trim_end_matches&page=0">1</a> <a style="" href="/search?q=trim_end_matches&page=1">2</a> <a style="" href="/search?q=trim_end_matches&page=2">3</a> <a style="" href="/search?q=trim_end_matches&page=3">4</a> <a style="" href="/search?q=trim_end_matches&page=4">5</a> <a style="" href="/search?q=trim_end_matches&page=5">6</a> <a style="" href="/search?q=trim_end_matches&page=6">7</a> <a style="" href="/search?q=trim_end_matches&page=7">8</a> <a style="" href="/search?q=trim_end_matches&page=8">9</a> <a style="" href="/search?q=trim_end_matches&page=9">10</a> … <a href="/search?q=trim_end_matches&page=149">150</a> <a href="/search?q=trim_end_matches&page=1" rel="next">&gt;</a> 
+</p>
+</noscript>
+
+</div>
+<div id="footer">
+<hr>
+<div id="fineprint">
+<p>© 2012 Debian Code Search - <a href="./contact" rel="nofollow">Contact / Send Feedback</a></p>
+<p>dcs-web <a href="https://github.com/Debian/dcs/commit/279efcd0506515c2cab929f0f998d701bd8951b6">279efcd</a></p>
+</div>
+</div>
+<script type="text/javascript">
+var el = document.getElementById('progressbar');
+if (el !== null) {
+    el.style.display = 'block';
+}
+</script>
+<script type="text/javascript" src="/instant.min.js?cachebust=b19c6ca7adad2717a7ddf5901a2c9831"></script>
+</body>
+</html>
+

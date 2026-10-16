@@ -98,13 +98,13 @@ adaptors for bidirectional ranges, not as streaming filters.
 - Implemented today: in `base`, via a right fold, which preserves useful
   laziness on a forward-only linked list.
 - Adaptor verdict: strong, long-standing precedent for the drop side, with a
-  caveat a paper should state honestly: Haskell's fold-based version works
+  caveat a paper should state: Haskell's fold-based version works
   on a forward-only list, whereas an efficient C++ view will require a
   bidirectional range. Swift Algorithms (§1.2) made the same trade-off.
 
 ### 1.4 Lodash — `_.dropRightWhile` / `_.takeRightWhile` — Direct
 
-- Source: [Lodash documentation](https://lodash.com/docs/4.17.21)
+- Source: [Lodash documentation](https://lodash.com/docs/4.18.1)
 - Operation: `dropRightWhile` creates a slice excluding elements dropped
   from the end until the predicate returns falsey; `takeRightWhile` is the
   complementary slice taken from the end. Both date to Lodash 3.0.0. The
@@ -452,7 +452,7 @@ helper family.
 
 ---
 
-## 6. Binary formats and padding — mostly spec-level, stated honestly
+## 6. Binary formats and padding — mostly spec-level
 
 This category is weaker than the others, and a paper should not overclaim
 it.
@@ -761,7 +761,7 @@ Ranked by strength of evidence and directness of mapping:
 1. **The exact pair already exists in mainstream libraries, always eager
    or non-core.** Kotlin's standard library ships both operations with
    the proposed naming (§1.1); Lodash and Ramda ship both (§§1.4–1.5);
-   Apple's Algorithms package ships both with the exact design the C++
+   Apple's Algorithms package ships both with the design the C++
    proposal needs — bidirectional constraint, backward scan, non-owning
    return (§1.2); Haskell has shipped the drop form since 2012 and the
    pair for text/bytes (§1.3). No source found provides a lazy, generic,
@@ -771,8 +771,7 @@ Ranked by strength of evidence and directness of mapping:
    critical path stripping a trailing run of zero *integers* (not
    characters), with an explanatory comment, in current code by an
    explicit backward loop and in an earlier version by a
-   reverse/drop-while/reverse contortion. One exhibit that answers both
-   "is it real?" and "is it only about strings?" — no.
+   reverse/drop-while/reverse contortion.
 3. **Java `String.split` (§8.1)** — a platform-default drop of trailing
    empty *fields* in record splitting, over a sequence of substrings.
    Shows the operation acting on token/field sequences in everyday data
@@ -797,16 +796,19 @@ Ranked by strength of evidence and directness of mapping:
 
 ### What the evidence does not support — do not claim
 
-- Frequency counts. This research establishes breadth and convergence,
-  not counts; no GitHub code-search frequency numbers were produced, and
-  none should be quoted until a dedicated counting pass is run.
+- Frequency counts. This catalogue establishes breadth and
+  convergence, not counts: it produced no frequency numbers of its
+  own, and none of its entries should be read as one. (Counts do
+  exist, from the separate counting passes in `frequency-study.md`
+  and `use-case-research-deep.md`; the paper quotes those, not
+  anything from this file.)
 - Token streams (§8.5): searched, not found.
 - Binary-format code examples (§6.2–6.3): padding runs are spec-evidenced
   only; the one format-driven code case is exFAT (§5.2).
 - Fixed-suffix removals are not evidence for a while operation, however
   common they are.
 - A streaming/lazy-filter framing: the operation is end-anchored and the
-  precedents are bidirectional/materialised (§0). The honest claim is a
+  precedents are bidirectional/materialised (§0). The claim is a
   lazy *view* over a bidirectional range whose boundary is found by a
   backward scan — not single-pass laziness.
 - Universal improvement: where the caller owns a container and wants

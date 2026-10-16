@@ -15,13 +15,31 @@ languages."*
   access-probe captures). `verification.txt` records the automated check that
   every Sourcegraph number in the CSV matches its raw response (46/46).
 
+## A note on the two counting passes
+
+The counts in the paper's §III.2 table come from two separate passes
+over two different indexes, both run on 15 October 2026. This file
+is the Sourcegraph pass: the grep.app API was blocked (HTTP 429)
+throughout it, so every count here is Sourcegraph's. The companion
+pass (`use-case-research-deep.md`) counted on grep.app; in that
+pass, Sourcegraph returned a bot-verification page and could not be
+counted. Neither pass could query the other pass's index, so the
+paper's two columns were not produced by one run and are not a
+same-conditions comparison: the universes and counting methods
+differ, and the paper states each drop : take ratio per index.
+
 ## Headline findings
 
-1. **Where a trailing-while operation exists, both directions are used at scale.**
-   Each spelling family shows drop and take within ~3× of each other in file
-   counts: Haskell `*WhileEnd` 740 : ≥218; Kotlin/Ramda `*LastWhile`
-   ≥4,876 : 3,098; lodash `*RightWhile` ≥13,396 : 13,852. The pair — not just one
-   direction — is what programmers reach for.
+1. **Both directions are used at scale, and the drop direction is
+   consistently the more frequent of the two.** File-count ratios
+   (drop : take): Haskell `*WhileEnd` 740 : ≥218 (≈3.4×);
+   Kotlin/Ramda `*LastWhile` ≥4,876 : 3,098 on this index (≈1.6×;
+   the grep.app pass counted the same spellings at ≈2.8×); lodash
+   `*RightWhile` ≥13,396 : 13,852 (near parity, but the lodash
+   tallies are the most vendoring-distorted in this study). The
+   take side is the junior partner in every family; the two are
+   proposed as a pair because they share one boundary computation
+   (the paper's §V.1 makes that argument).
 2. **The usage is broad, not concentrated.** Each exact spelling appears in
    95–2,039 distinct repositories on a single index (see Table A).
 3. **The string form of the same operation is enormous.** Rust's
@@ -166,6 +184,8 @@ count is the meaningful one (Table C).
    every public repository). grep.app was bot-blocked, GitHub code search
    requires authentication this study did not have, and searchcode's global
    API no longer exists — each failure is evidenced in `raw/` and the CSV.
+   (The grep.app counts quoted in the paper come from the separate
+   grep.app pass described in the note at the top of this file.)
    Cross-checks were therefore done across two Sourcegraph endpoints, plus
    qualitative corroboration on Debian's independent corpus:
    `find_last_not_of` returns 945 result pages there across many unrelated

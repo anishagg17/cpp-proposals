@@ -1,0 +1,37 @@
+{
+ "sourcegraph_stream__dropLastWhile_files.sse.txt": {
+  "original_bytes": 44983307,
+  "original_sha256": "f340067b7871659ac3a6e7c70c11da089d9302b18bc83ef7557f2dd729df6aba",
+  "trimmed_bytes": 2081858,
+  "filters_events_dropped": 173,
+  "kept": "all progress/matches/done events + the final filters event"
+ },
+ "sourcegraph_stream__takeLastWhile_files.sse.txt": {
+  "original_bytes": 25347970,
+  "original_sha256": "855da7ad248bf194bd92332d7c7f397fc02f0dcbcaf46ab534b2caedc379e0e3",
+  "trimmed_bytes": 1426482,
+  "filters_events_dropped": 111,
+  "kept": "all progress/matches/done events + the final filters event"
+ },
+ "sourcegraph_stream__dropRightWhile_files.sse.txt": {
+  "original_bytes": 43320860,
+  "original_sha256": "4e378f390ffdf3050d6ebb1663d87b0eb886a555c8ca42a0357d719e86619933",
+  "trimmed_bytes": 4957206,
+  "filters_events_dropped": 155,
+  "kept": "all progress/matches/done events + the final filters event"
+ },
+ "sourcegraph_stream__takeRightWhile_files.sse.txt": {
+  "original_bytes": 61416156,
+  "original_sha256": "a69fa6c3d15b1ea36aecd85a8ff11c3f0c3486f1e5f49070bfe7bbf59c1da68f",
+  "trimmed_bytes": 5164705,
+  "filters_events_dropped": 222,
+  "kept": "all progress/matches/done events + the final filters event"
+ },
+ "sourcegraph_stream__find_last_not_of_files.sse.txt": {
+  "original_bytes": 59928081,
+  "original_sha256": "8746975c3f3c517f6cc734849e8b27eb0648522153ddd8b9f5674fe9c722ea1d",
+  "trimmed_bytes": 6055844,
+  "filters_events_dropped": 218,
+  "kept": "all progress/matches/done events + the final filters event"
+ }
+}
