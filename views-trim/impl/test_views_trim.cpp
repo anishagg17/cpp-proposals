@@ -338,6 +338,29 @@ int main() {
         assert(std::string(rev.begin(), rev.end()) == "ih");
     }
 
+    // Movable-box self-assignment (regression test): assigning a
+    // view to itself must leave the stored predicate intact. The
+    // predicate is a lambda capturing a heap-allocated string, so
+    // its closure type is not assignable and the box stores it by
+    // destroying and reconstructing on assignment; without a
+    // self-assignment guard that path reads from the object it just
+    // destroyed (use-after-free — this test also runs under
+    // AddressSanitizer). The predicate compares against the captured
+    // string's first character, so a corrupted capture changes the
+    // result.
+    {
+        std::string target(64, 'x'); // forces a heap allocation (no SSO)
+        auto is_x = [target](char ch) { return ch == target.front(); };
+        std::string s = "xxhixx";
+        auto v = s | spv::trim_while(is_x);
+        assert(std::string(v.begin(), v.end()) == "hi");
+        auto& vref = v;
+        v = vref; // self copy-assignment
+        assert(std::string(v.begin(), v.end()) == "hi");
+        v = std::move(vref); // self move-assignment
+        assert(std::string(v.begin(), v.end()) == "hi");
+    }
+
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 202202L
     // C++23: adaptor closures compose before application, via
     // std::ranges::range_adaptor_closure. The static_assert is the

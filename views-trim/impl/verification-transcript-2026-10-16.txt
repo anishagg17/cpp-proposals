@@ -3,12 +3,12 @@ Date: 2026-10-16
 Location: github-staging/cpp-proposals/views-trim/impl (staged copy)
 
 What this run is: the reference implementation from the views-trim
-submission pack (verified 2026-10-13, transcript in the pack), copied
+working copy (verified 2026-10-13, transcript kept with it), copied
 for the public repository with ONE change — the predicate adaptor was
 renamed trim_if -> trim_while throughout (header, tests, docs),
 following Arthur O'Dwyer's feedback on the std-proposals float.
 Semantics unchanged. The rename was checked by diffing the staged
-header and tests against the pack originals: every changed line is a
+header and tests against the originals: every changed line is a
 name change, plus comment notes recording the rename.
 
 Compilers:
@@ -36,3 +36,35 @@ All six configurations compile warning-free (under -Werror) and the
 test binary prints PASS. The suite includes the two non-propagating
 cache regression tests (copy and move directions) that exercise the
 use-after-free cases under AddressSanitizer.
+
+================================================================
+Addendum — 16 Oct 2026: movable_box self-assignment fix
+================================================================
+
+The movable_box bug found in the drop_last_while header was also
+present in this copy: the assignment operators stored a
+non-assignable predicate (a capturing lambda) by destroying it and
+reconstructing from the destroyed object, so self-assigning a view
+corrupted its predicate (use-after-free under AddressSanitizer).
+
+Changes made on 16 Oct 2026 (this staged copy and the working copy
+it came from):
+1. impl/views_trim.hpp: both movable_box assignment operators
+   (copy and move) now start with the self-assignment guard
+   `if (this == std::addressof(other)) return *this;`, matching
+   the standard's movable-box. <memory> included for
+   std::addressof.
+2. impl/test_views_trim.cpp: new regression test — a trim_while
+   view whose predicate is a lambda capturing a 64-char
+   std::string (heap allocated) is self-copy-assigned and
+   self-move-assigned, then iterated and checked.
+3. Makefile and build.sh: the Clang binary is no longer assumed
+   to be a specific name; both detect clang++ first and fall
+   back to clang++-18.
+
+Re-verification after the fix (16 Oct 2026, run in this staged
+copy): the full suite passes on g++ 13.3.0 and clang++ 18.1.3 at
+-std=c++20 and -std=c++23 (-Wall -Wextra -Werror), and ASan+UBSan
+(-fsanitize=address,undefined -fno-sanitize-recover=all) runs are
+clean under both compilers at both standards. `make test` and
+`./build.sh` both pass end to end.

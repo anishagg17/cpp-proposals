@@ -5,7 +5,14 @@
 set -e
 cd "$(dirname "$0")"
 
-for cc in g++ clang++; do
+# Prefer clang++; fall back to a versioned binary name.
+if command -v clang++ >/dev/null 2>&1; then
+    CLANG=clang++
+else
+    CLANG=clang++-18
+fi
+
+for cc in g++ "$CLANG"; do
     for std in c++20 c++23; do
         bin="test_${cc}_${std}"
         echo "== $cc -std=$std =="

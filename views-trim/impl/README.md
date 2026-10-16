@@ -1,12 +1,12 @@
 # Reference implementation — `std::views::trim` / `std::views::trim_while`
 
 Note on the name: the predicate form was called `trim_if` in the
-first draft of this pack and in the std-proposals float. It was
+first draft and in the std-proposals float. It was
 renamed to `trim_while` after feedback on the list (Arthur
-O'Dwyer: `trim_while` is the more consistent name). Only the name
-changed; the semantics are the same.
+O'Dwyer suggested `trim_while` as the more consistent name). Only
+the name changed; the semantics are the same.
 
-Proposal context: implement the P2760R0 Tier 2 plan item `views::trim`
+Proposal context: implement the P2760R1 Tier 2 plan item `views::trim`
 (SG9 ranges plan) as a standard range adaptor. The adaptor exists
 today only in range-v3 (`ranges::views::trim`). This directory is the
 working reference implementation and its evidence; it is **not** the
@@ -19,7 +19,8 @@ paper.
 | `views_trim.hpp` | Header. `std_proposal::ranges::trim_view` plus the adaptor objects `std_proposal::views::trim_while` / `std_proposal::views::trim` (deliberately **not** in `namespace std`; the only std touch is an `enable_borrowed_range` specialisation for this header's own type, which the standard permits). |
 | `test_views_trim.cpp` | Concept/`static_assert` checks + runtime `assert` suite (see coverage list below). Prints `PASS`. |
 | `Makefile`, `build.sh` | Build/run recipes for all four compiler/mode combinations. |
-| `verification-transcript-2026-10-16.txt` | Exact commands and outputs of the verification runs for this copy (the rename build; see the note at the top of the transcript). The pack this was copied from also has a 2026-10-13 transcript with two supporting probes cited by the paper. |
+| `verification-transcript-2026-10-13.txt` | Exact commands and outputs of the original verification runs, plus two supporting probes cited by the paper (the `drop_while_view` sized_range and const-`begin()` probes). |
+| `verification-transcript-2026-10-16.txt` | Exact commands and outputs of the verification runs for the renamed (`trim_while`) build. |
 
 ## Semantics implemented (the paper's recommended design)
 
@@ -31,7 +32,7 @@ paper.
   ends; implemented on top of `trim_while`.
 - Base must model `bidirectional_range` + `common_range` (range-v3's
   requirements). Forward-only or non-common bases are compile-time
-  constraint failures — checked by concept-based negative tests, not
+  constraint failures, checked by concept-based negative tests, not
   just asserted in prose.
 - The view's iterators are the base's iterators; both bounds are
   computed by a single scan and cached on the non-const path. The
@@ -40,7 +41,7 @@ paper.
   `borrowed_range`.
 - `sized_range` is modelled exactly when the base's
   iterator/sentinel pair is a sized-sentinel pair, with
-  `ranges::size` returning the exact trimmed size — the
+  `ranges::size` returning the exact trimmed size: the
   `drop_while_view` precedent, **not** range-v3 (which disables
   sized_range for its trim_view). See "Design history" below.
 - No projection parameter (range-v3 has one; the standard's
@@ -66,21 +67,21 @@ paper.
 - Negative tests (concepts): `trim_while`/`trim` are **not applicable**
   to a `std::forward_list` (forward-only) nor to a bidirectional but
   non-common range (counted iterator + default sentinel).
-- `constexpr`: full evaluation in `static_assert`, both through a
-  non-const view object and through a **const** view object over a
-  namespace-scope `constexpr std::array` (see the quirk note in the
-  transcript about local constexpr arrays — it affects the standard's
-  own `views::take` identically on GCC 13).
+- `constexpr`: full evaluation in `static_assert`, using a mutable
+  local view object over a namespace-scope `constexpr std::array`.
+  (trim_view, like `drop_while_view`, has no const `begin()`/`end()`,
+  so a const view object is not iterable; constant *evaluation* is
+  unaffected. The array sits at namespace scope because a `ref_view`
+  over a *local* constexpr array is rejected by GCC 13 even for the
+  standard's own `views::take`; that toolchain note is recorded in
+  the test file.)
 - `view_interface` surface: `front`, `back`, `operator[]`, `empty`,
   `ranges::size`, `pred()` accessor.
 
-## Compilers available and used (this VM)
+## Compilers used
 
 - `g++` — GCC 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1)
 - `clang++` — Clang 18.1.3 (1ubuntu1), using libstdc++ 13
-
-Both were present and both were used; nothing claimed here comes from
-a compiler that was not run.
 
 ## Exact commands
 
@@ -96,24 +97,26 @@ clang++ -std=c++23 -Wall -Wextra -Werror test_views_trim.cpp -o test_clang++_c++
 
 All four configurations compile warning-free under `-Werror` and the
 test binary prints `PASS` in each: g++ C++20, g++ C++23, clang++
-C++20, clang++ C++23. Full verbatim output is in
-`verification-transcript-2026-10-16.txt`.
+C++20, clang++ C++23. Full verbatim output is in the
+verification transcripts listed above.
 
-## Design history — two things the tests changed (recorded honestly)
+## Design history — two things the tests changed
 
 1. **sized_range.** The first draft of the header specialised
    `std::ranges::disable_sized_range<trim_view<…>> = true` to imitate
    range-v3. The concept tests showed `sized_range` was satisfied
-   anyway: `ranges::size` finds the `size()` inherited from
-   `view_interface` (trimmed end − trimmed begin), which the
-   specialisation does not suppress in libstdc++. A probe of the
-   standard's own adaptors (in the transcript) showed
-   `drop_while_view` over a `vector` models `sized_range` for
-   exactly this reason, while `take_while_view` does not (distinct
-   sentinel type). The design was changed to follow `drop_while`:
-   sized exactly when the base's iterator/sentinel pair is a
-   sized-sentinel pair, with the correct trimmed size. The no-op
-   specialisation was removed rather than kept as decoration.
+   anyway: `ranges::size` falls back to `end() - begin()` for a
+   common range whose iterator/sentinel pair is a sized-sentinel
+   pair, and the `disable_sized_range` specialisation does not
+   suppress that fallback (the same behaviour occurs with libc++).
+   A probe of the standard's own adaptors (in the 2026-10-13
+   transcript) showed `drop_while_view` over a `vector` models
+   `sized_range` for exactly this reason, while `take_while_view`
+   does not (distinct sentinel type). The design was changed to
+   follow `drop_while`: sized exactly when the base's
+   iterator/sentinel pair is a sized-sentinel pair, with the correct
+   trimmed size. The no-op specialisation was removed rather than
+   kept as decoration.
 2. **Constrained default constructor.** The first draft had
    `trim_view() = default;`. Under clang++ `-std=c++23`, piping a
    trim view into `views::reverse` then failed with a hard error:
@@ -121,8 +124,8 @@ C++20, clang++ C++23. Full verbatim output is in
    `default_initializable<trim_view<ref_view<…>, …>>` in an
    exception-specification context, which instantiated the base
    member's `= V()` initialiser for the non-default-initialisable
-   `ref_view`. libstdc++'s own `drop_while_view` shows the fix —
+   `ref_view`. libstdc++'s own `drop_while_view` shows the fix:
    its default constructor carries
    `requires default_initializable<V> && default_initializable<Pred>`
-   (which is also what the standard's wording specifies) — and
+   (which is also what the standard's wording specifies), and
    adopting it made all four configurations pass.

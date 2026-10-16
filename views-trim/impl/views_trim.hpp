@@ -59,6 +59,7 @@
 #include <concepts>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <ranges>
 #include <type_traits>
@@ -138,6 +139,12 @@ struct movable_box {
     // is not assignable, which is the very case this box exists for.
     // The non-assignable path destroys and reconstructs (emplace).
     constexpr movable_box& operator=(const movable_box& other) {
+        // Self-assignment has to be a no-op: the reconstruct path
+        // below would otherwise destroy the stored value and then
+        // read from the destroyed object. (The standard's
+        // movable-box guards against this the same way.)
+        if (this == std::addressof(other))
+            return *this;
         if (!other.box_)
             box_.reset();
         else if constexpr (std::assignable_from<T&, const T&>) {
@@ -150,6 +157,8 @@ struct movable_box {
         return *this;
     }
     constexpr movable_box& operator=(movable_box&& other) {
+        if (this == std::addressof(other))
+            return *this;
         if (!other.box_)
             box_.reset();
         else if constexpr (std::assignable_from<T&, T>) {
