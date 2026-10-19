@@ -1,0 +1,28 @@
+Reply in the views::trim thread (std-proposals, 13 Oct). Send only after the
+paper is actually submitted, and fill in the paper link.
+
+Subject: Re: views::trim (P2760 Tier 2) and a views::trim_if companion: is anyone working on this?
+
+Hi all,
+
+Quick update on views::trim. It now has a number, P4398R0, and I'm
+submitting it for the October mailing.
+
+What changed since the first draft:
+
+- The predicate form is now views::trim_while instead of trim_if.
+  Thanks to Arthur for the suggestion.
+- I fixed a few bugs in the reference implementation: cached iterators
+  were being copied along with the view, capturing lambdas didn't work
+  as predicates, and composing closures didn't work in C++23.
+- The proposed behaviour hasn't changed.
+
+On Hewill's point about use cases: the paper now compares trim with
+other languages and libraries, but I haven't done a code-search survey
+yet. I plan to add one in R1.
+
+Paper: <link once it is in the mailing>
+Implementation: https://github.com/anishagg17/cpp-proposals/tree/main/views-trim/impl
+
+Thanks,
+Anish

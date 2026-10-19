@@ -232,7 +232,8 @@ public:
             && std::default_initializable<Pred>
     = default;
 
-    constexpr trim_view(V base, Pred pred)
+    // explicit, as in the proposed wording (and drop_while_view).
+    constexpr explicit trim_view(V base, Pred pred)
         : base_(std::move(base)), pred_(std::move(pred)) {}
 
     constexpr V base() const&
@@ -242,15 +243,15 @@ public:
     }
     constexpr V base() && { return std::move(base_); }
 
-    constexpr const Pred& pred() const noexcept { return *pred_; }
+    constexpr const Pred& pred() const { return *pred_; }
 
-    constexpr auto begin() {
+    constexpr std::ranges::iterator_t<V> begin() {
         if (!begin_cache_)
             begin_cache_ = compute_begin(base_, *pred_);
         return *begin_cache_;
     }
 
-    constexpr auto end() {
+    constexpr std::ranges::iterator_t<V> end() {
         if (!end_cache_)
             end_cache_ = compute_end(base_, *pred_, begin());
         return *end_cache_;
@@ -344,11 +345,16 @@ constexpr auto operator|(R&& r, trim_while_closure<Pred> c) {
 template <class T>
 struct eq_value_pred {
     T value_;
+    // Forwarding, as in the wording's trim-equal-to (and ranges::equal_to),
+    // so element types whose == needs a non-const or rvalue operand work.
+    // boolean-testable is approximated by convertible_to<bool>.
     template <class X>
-    constexpr bool operator()(const X& x) const
-        requires requires { { x == value_ } -> std::convertible_to<bool>; }
+    constexpr bool operator()(X&& x) const
+        requires requires(const T& v) {
+            { std::forward<X>(x) == v } -> std::convertible_to<bool>;
+        }
     {
-        return x == value_;
+        return bool(std::forward<X>(x) == value_);
     }
 };
 

@@ -1,0 +1,7 @@
+# Builds P4398R0 with mpark/wg21 (https://github.com/mpark/wg21).
+# One-time setup, from the repository root:
+#   git clone https://github.com/mpark/wg21.git wg21
+# Then, from this folder:
+#   make -f Makefile.wg21 P4398R0.html P4398R0.pdf   (output goes to generated/)
+# (Rename this file to Makefile if you prefer plain `make`.)
+include ../../wg21/flat.mk
